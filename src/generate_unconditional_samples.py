@@ -17,6 +17,7 @@ def sample_model(
     temperature=1,
     top_k=0,
     models_dir='models',
+    gpu_auto_mixed_precision=False,
 ):
     """
     Run the sample_model
@@ -38,6 +39,8 @@ def sample_model(
      special setting meaning no restrictions. 40 generally is a good value.
      :models_dir : path to parent folder containing model subfolders
      (i.e. contains the <model_name> folder)
+     :gpu_auto_mixed_precision : Using both FP32 and FP16 data types to speed 
+     up inference.
     """
     models_dir = os.path.expanduser(os.path.expandvars(models_dir))
     enc = encoder.get_encoder(model_name, models_dir)
@@ -49,7 +52,13 @@ def sample_model(
         length = hparams.n_ctx
     elif length > hparams.n_ctx:
         raise ValueError("Can't get samples longer than window size: %s" % hparams.n_ctx)
-
+        
+    if os.environ.get('TF_ENABLE_AUTO_MIXED_PRECISION', default='0') == '1' or \
+       gpu_auto_mixed_precision:
+        print("=============Enabling GPU Automatic Mixed Precision Inference=============")
+        optimizer = tf.train.AdamOptimizer()
+        optimizer = tf.train.experimental.enable_mixed_precision_graph_rewrite(optimizer)
+            
     with tf.Session(graph=tf.Graph()) as sess:
         np.random.seed(seed)
         tf.set_random_seed(seed)
@@ -75,5 +84,5 @@ def sample_model(
                 print(text)
 
 if __name__ == '__main__':
-    fire.Fire(sample_model)
+    fire.Fire(sample_model(nsamples=10))
 
