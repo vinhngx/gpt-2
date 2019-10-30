@@ -53,7 +53,7 @@ def sample_model(
     elif length > hparams.n_ctx:
         raise ValueError("Can't get samples longer than window size: %s" % hparams.n_ctx)
         
-    if os.environ.get('TF_ENABLE_AUTO_MIXED_PRECISION', default='0') == '1' or \
+    if os.environ.get('AUTO_MIXED_PRECISION', default='0') == '1' or \
        gpu_auto_mixed_precision:
         print("=============Enabling GPU Automatic Mixed Precision Inference=============")
         optimizer = tf.train.AdamOptimizer()
